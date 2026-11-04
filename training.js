@@ -28,7 +28,7 @@ export function renderTraining(root, material, storage = localStorage, scope = '
   const section=(title)=>{const el=document.createElement('section');const heading=document.createElement('h3');heading.textContent=title;el.append(heading);root.append(el);return el};
   if (material.vocabulary.length) {
     const el=section('词汇练习'), controls=document.createElement('div'), all=document.createElement('button'), due=document.createElement('button'), area=document.createElement('div');
-    all.textContent='全部词汇'; due.textContent='到期复习'; controls.append(all,due); el.append(controls,area);
+    el.classList.add('vocab-practice');controls.className='vocab-tabs';area.className='vocab-card';all.textContent='全部词汇'; due.textContent='到期复习'; controls.append(all,due); el.append(controls,area);
     let index=0, words=material.vocabulary;
     const choose=(review)=>{words=review ? material.vocabulary.filter(w=>isDueWord(state.words[w.word.toLowerCase()])) : material.vocabulary;index=0;paint()};
     all.onclick=()=>choose(false); due.onclick=()=>choose(true);
@@ -41,7 +41,7 @@ export function renderTraining(root, material, storage = localStorage, scope = '
       const prompt=document.createElement('p');prompt.textContent='先回忆意思，再选择你的记忆程度。';area.append(prompt);
       const answer=document.createElement('div');answer.hidden=true;
       for(const text of [word.meaning,word.example,word.translation].filter(Boolean)){const line=document.createElement('p');line.textContent=text;answer.append(line)}
-      const actions=document.createElement('div'),status=document.createElement('p');status.setAttribute('role','status');
+      const actions=document.createElement('div'),status=document.createElement('p');actions.className='vocab-actions';status.setAttribute('role','status');
       let selected=null; const prior=state.words[id];
       for(const [label,rating] of [['知道','known'],['模糊','uncertain'],['不知道','forgotten'],['我已熟练掌握','mastered']]){
         const button=document.createElement('button');button.textContent=label;button.className=rating==='mastered'?'secondary':'';

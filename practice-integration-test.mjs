@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+// Dependency-free DOM harness for rendering and interaction logic. This does not
+// replace real browser, touch, audio, or provider integration testing.
+class Element {
+  constructor(tag) {this.tagName=tag;this.children=[];this.style={};this.attributes={};this.hidden=false;this.value='';this._text='';this.listeners={};this.classList={add() {},remove() {},toggle() {}};}
+  set textContent(value){this._text=String(value);this.children=[]}
+  get textContent(){return this._text+this.children.map(child=>child.textContent).join('')}
+  append(...items){this.children.push(...items)}
+  replaceChildren(...items){this._text='';this.children=items}
+  setAttribute(name,value){this.attributes[name]=String(value)}
+  addEventListener(name,fn){(this.listeners[name] ||= []).push(fn)}
+  removeEventListener(name,fn){this.listeners[name]=(this.listeners[name]||[]).filter(x=>x!==fn)}
+  dispatch(name){for(const fn of this.listeners[name]||[])fn({target:this});if(typeof this['on'+name]==='function')return this['on'+name]({target:this})}
+  focus(){}
+}
+globalThis.document={createElement:tag=>new Element(tag),createTextNode:text=>{const node=new Element('#text');node.textContent=text;return node}};
+globalThis.window={};
+const all=(root,predicate)=>[...(predicate(root)?[root]:[]),...root.children.flatMap(child=>all(child,predicate))];
+const byText=(root,tag,text)=>{const result=all(root,el=>el.tagName===tag&&el.textContent===text);assert.equal(result.length,1,`expected one ${tag}: ${text}`);return result[0]};
+const exerciseCode=fs.readFileSync(new URL('./exercise.js',import.meta.url),'utf8');
+const profileCode=fs.readFileSync(new URL('./exam-profiles.js',import.meta.url),'utf8');
+const trainingCode=fs.readFileSync(new URL('./training.js',import.meta.url),'utf8').replace("'./exercise.js'",`'data:text/javascript;base64,${Buffer.from(exerciseCode).toString('base64')}'`);
+const {parseStudyContent}=await import('data:text/javascript;base64,'+Buffer.from(profileCode).toString('base64'));
+const {renderTraining}=await import('data:text/javascript;base64,'+Buffer.from(trainingCode).toString('base64'));
+const material=parseStudyContent(JSON.stringify({title:'Sample',vocabulary:[{word:'assess',meaning:'评估',example:'Assess results.',translation:'评估结果。'}],listening:{transcript:'A student studies daily.',questions:[{question:'What?',options:['Study','Travel'],answer:0,explanation:'The student studies.',start:0,end:4}]},writing:'Describe a habit.'}));
+const map=new Map(),storage={getItem:key=>map.get(key)??null,setItem:(key,val)=>map.set(key,String(val))};
+const root=new Element('main');let feedbackArgs;
+const feedback=async (...args)=>{feedbackArgs=args;return {summary:'反馈',issues:[{quote:'bad',explanation:'语法',suggestion:'good'}]}};
+renderTraining(root,material,storage,'cet6:test',feedback);
+byText(root,'button','知道').dispatch('click');
+assert.match(root.textContent,/评估结果/);
+byText(root,'button','我已熟练掌握').dispatch('click');
+assert.match(root.textContent,/已标记「我已熟练掌握」/);
+const saved=JSON.parse(storage.getItem('english-prep-training-v1:cet6:test'));
+assert.equal(saved.words.assess.mastered,true);
+byText(root,'button','到期复习').dispatch('click');assert.match(root.textContent,/目前没有到期词汇/);
+const radios=all(root,e=>e.tagName==='input'&&e.type==='radio');radios[0].dispatch('change');
+byText(root,'button','查看答案与讲解').dispatch('click');assert.match(root.textContent,/回答正确。 正确答案：Study/);
+const drafts=all(root,e=>e.tagName==='textarea');assert.equal(drafts.length,1);drafts[0].value='bad';drafts[0].dispatch('input');
+await byText(root,'button','请求 AI 反馈').dispatch('click');assert.equal(feedbackArgs[2],'bad');assert.match(root.textContent,/语法 → good/);
+const root2=new Element('main');renderTraining(root2,material,storage,'cet6:test',feedback);assert.equal(all(root2,e=>e.tagName==='textarea')[0].value,'bad');assert.equal(all(root2,e=>e.tagName==='input'&&e.type==='radio')[0].checked,true);
+const nextMaterial=new Element('main');renderTraining(nextMaterial,material,storage,'cet6:another',feedback);byText(nextMaterial,'button','到期复习').dispatch('click');assert.match(nextMaterial.textContent,/目前没有到期词汇/);
+console.log('PASS: imported practice, vocabulary rating correction, saved answers and draft, mocked feedback, re-render restoration.');

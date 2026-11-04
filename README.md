@@ -101,6 +101,9 @@ python -m http.server 5174 --bind 127.0.0.1
 node exam-profiles-test.mjs
 node training-test.mjs
 node ai-client-test.mjs
+node exercise-test.mjs
+node practice-integration-test.mjs
+node --test sync/*-test.mjs
 ```
 
 这些测试覆盖考试选项、导入校验、部分词汇调度和模拟 AI 请求；它们不代表真实模型、所有手机或音频格式均已验证。

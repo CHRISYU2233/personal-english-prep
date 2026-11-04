@@ -25,6 +25,6 @@ export function parseStudyContent(input) {
   const listening = { questions: parseQuestions(value.listening?.questions), lines: parseLines(value.listening?.lines), transcript: str(value.listening?.transcript, 10000), question: str(value.listening?.question, 2000) };
   const plan = Array.isArray(value.plan) ? value.plan.map(x => str(x, 500)).filter(Boolean).slice(0, 20) : [];
   const result = { title:str(value.title,200), plan, vocabulary, listening, reading, writing:str(value.writing,3000), translation:str(value.translation,3000) };
-  if (!result.title && !vocabulary.length && !reading.passage && !reading.question && !reading.questions.length && !listening.transcript && !listening.question && !listening.questions.length && !result.writing && !result.translation && !plan.length) throw new Error('没有可导入的学习内容。');
+  if (!result.title && !vocabulary.length && !reading.passage && !reading.question && !reading.questions.length && !listening.transcript && !listening.question && !listening.questions.length && !listening.lines.length && !result.writing && !result.translation && !plan.length) throw new Error('没有可导入的学习内容。');
   return result;
 }
