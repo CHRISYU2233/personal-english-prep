@@ -43,3 +43,16 @@ await byText(root,'button','请求 AI 反馈').dispatch('click');assert.equal(fe
 const root2=new Element('main');renderTraining(root2,material,storage,'cet6:test',feedback);assert.equal(all(root2,e=>e.tagName==='textarea')[0].value,'bad');assert.equal(all(root2,e=>e.tagName==='input'&&e.type==='radio')[0].checked,true);
 const nextMaterial=new Element('main');renderTraining(nextMaterial,material,storage,'cet6:another',feedback);byText(nextMaterial,'button','到期复习').dispatch('click');assert.match(nextMaterial.textContent,/目前没有到期词汇/);
 console.log('PASS: imported practice, vocabulary rating correction, saved answers and draft, mocked feedback, re-render restoration.');
+
+// Review draws from earlier materials of the same exam, but not another exam.
+const queueMap=new Map(), queueStore={getItem:k=>queueMap.get(k)??null,setItem:(k,v)=>queueMap.set(k,String(v))};
+const oldRoot=new Element('main');renderTraining(oldRoot,material,queueStore,'cet6:old',feedback);
+byText(oldRoot,'button','不知道').dispatch('click');
+const vocabKey='english-prep-training-v1:cet6:vocabulary';const progress=JSON.parse(queueStore.getItem(vocabKey));progress.assess.due=Date.now()-1;queueStore.setItem(vocabKey,JSON.stringify(progress));
+const replacement=parseStudyContent(JSON.stringify({title:'New',vocabulary:[{word:'adapt',meaning:'适应'}]}));
+const freshRoot=new Element('main');renderTraining(freshRoot,replacement,queueStore,'cet6:new',feedback);
+byText(freshRoot,'button','到期复习').dispatch('click');assert.match(freshRoot.textContent,/assess/);assert.doesNotMatch(freshRoot.textContent,/adapt/);
+byText(freshRoot,'button','我已熟练掌握').dispatch('click');
+const again=new Element('main');renderTraining(again,replacement,queueStore,'cet6:new',feedback);byText(again,'button','到期复习').dispatch('click');assert.match(again.textContent,/目前没有到期词汇/);
+const otherExam=new Element('main');renderTraining(otherExam,replacement,queueStore,'ielts:new',feedback);byText(otherExam,'button','到期复习').dispatch('click');assert.match(otherExam.textContent,/目前没有到期词汇/);
+console.log('PASS: cross-material due queue and exam isolation.');

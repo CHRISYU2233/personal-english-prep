@@ -7,3 +7,4 @@ node_modules/
 
 # Local sync state and interrupted writes
 private-data/
+!sync/package.json

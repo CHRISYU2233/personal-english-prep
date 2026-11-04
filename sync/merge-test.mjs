@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mergeSnapshots} from './merge.mjs';
+import {mergeSnapshots} from './merge.js';
 test('independent changes merge and competing edits are not silently discarded',()=>{
   const base={words:{one:1,two:1},drafts:{text:'old'}};
   const local={words:{one:2,two:1},drafts:{text:'local'}};

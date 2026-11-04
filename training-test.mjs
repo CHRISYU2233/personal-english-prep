@@ -4,3 +4,5 @@ const dependency=fs.readFileSync('exercise.js').toString('base64');const code=Bu
 const t=1700000000000;let a=scheduleWord(null,'known',t);assert.equal(a.due,t+86400000);a=scheduleWord(a,'known',t+86400000);assert.equal(a.stage,1);a=scheduleWord(a,'forgotten',t+2*86400000);assert.equal(a.stage,0);assert.throws(()=>scheduleWord(null,'invalid'));console.log('PASS: vocabulary self-assessment and scheduling.');
 
 const forgotten=scheduleWord(null,'forgotten',t);assert.equal(forgotten.due,t+300000);assert.equal(isDueWord(forgotten,t+300000),true);const mastered=scheduleWord(forgotten,'mastered',t);assert.equal(isDueWord(mastered,t+365*86400000),false);assert.equal(scheduleWord(mastered,'forgotten',t+1000).mastered,false);assert.equal(matchesSpelling('  Self-aware ','self-aware'),true);assert.equal(matchesSpelling('self aware','self-aware'),false);const quick=scheduleWord(a,'known',t+2*86400000+1000);assert.equal(quick.stage,a.stage);assert.equal(quick.lastAt,a.lastAt);
+
+const reversed=scheduleWord(scheduleWord(null,'mastered',t),'known',t+1000);assert.ok(Number.isFinite(reversed.due));assert.equal(reversed.mastered,false);

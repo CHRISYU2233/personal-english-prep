@@ -5,13 +5,16 @@ export function scheduleWord(previous, rating, now = Date.now()) {
   if (!['known','uncertain','forgotten','mastered'].includes(rating)) throw new Error('无效的记忆反馈');
   if (rating === 'mastered') return {...previous, mastered:true, due:null, lastAt:now, lastRating:rating};
   const spaced = !previous || now - (previous.lastAt || 0) >= 12 * 3600000;
-  const stage = rating === 'known' ? Math.min(6, (previous?.stage ?? -1) + (spaced ? 1 : 0)) : rating === 'uncertain' ? Math.max(0, (previous?.stage ?? 0) - 1) : 0;
+  const stage = rating === 'known' ? Math.max(0, Math.min(6, (previous?.stage ?? -1) + (spaced ? 1 : 0))) : rating === 'uncertain' ? Math.max(0, (previous?.stage ?? 0) - 1) : 0;
   const intervals = [1,2,4,7,15,30,60];
   const due = rating === 'forgotten' ? now+5*60000 : rating === 'uncertain' ? now+10*60000 : (!spaced && previous?.due > now ? previous.due : now+intervals[stage]*86400000);
   return {stage:Math.max(0,stage), due, mastered:false, lastAt:rating === 'known' && !spaced ? previous.lastAt : now, lastRating:rating};
 }
 export function isDueWord(progress, now = Date.now()) {
   return !!progress && !progress.mastered && Number.isFinite(progress.due) && progress.due <= now;
+}
+export function dueVocabulary(catalog, progress, now = Date.now()) {
+  return Object.values(catalog).filter(w => w && typeof w.word === 'string' && isDueWord(progress[w.word.toLowerCase()],now)).sort((a,b) => progress[a.word.toLowerCase()].due - progress[b.word.toLowerCase()].due || a.word.localeCompare(b.word));
 }
 export function matchesSpelling(input, expected) {
   return String(input).trim().toLocaleLowerCase() === String(expected).trim().toLocaleLowerCase();
@@ -23,14 +26,20 @@ export function renderTraining(root, material, storage = localStorage, scope = '
   let sharedWords={};try {sharedWords=JSON.parse(storage.getItem(vocabularyKey)||'{}')} catch {}
   if(!sharedWords || typeof sharedWords!=='object' || Array.isArray(sharedWords)) sharedWords={};
   state.words={...(state.words||{}),...sharedWords}; state.drafts ||= {};
-  const persist=()=>{storage.setItem(vocabularyKey,JSON.stringify(state.words));storage.setItem(key,JSON.stringify(state))};
+  const catalogKey=storageKey+':'+scope.split(':')[0]+':vocabulary-catalog';
+  let catalog={};try {catalog=JSON.parse(storage.getItem(catalogKey)||'{}')} catch {}
+  if(!catalog || typeof catalog!=='object' || Array.isArray(catalog)) catalog={};
+  for(const word of material.vocabulary || []) if(word && typeof word.word==='string' && word.word.trim()) catalog[word.word.toLowerCase()]={...catalog[word.word.toLowerCase()],...word};
+  storage.setItem(catalogKey,JSON.stringify(catalog));
+  const persist=()=>storage.setItem(key,JSON.stringify(state));
+  const saveWord=(id,progress)=>{let latest={};try{latest=JSON.parse(storage.getItem(vocabularyKey)||'{}')}catch{};if(!latest||typeof latest!=='object'||Array.isArray(latest))latest={};latest[id]=progress;state.words={...state.words,...latest};storage.setItem(vocabularyKey,JSON.stringify(latest));persist()};
   root.replaceChildren();
   const section=(title)=>{const el=document.createElement('section');const heading=document.createElement('h3');heading.textContent=title;el.append(heading);root.append(el);return el};
-  if (material.vocabulary.length) {
+  if (material.vocabulary.length || Object.keys(catalog).length) {
     const el=section('词汇练习'), controls=document.createElement('div'), all=document.createElement('button'), due=document.createElement('button'), area=document.createElement('div');
     el.classList.add('vocab-practice');controls.className='vocab-tabs';area.className='vocab-card';all.textContent='全部词汇'; due.textContent='到期复习'; controls.append(all,due); el.append(controls,area);
     let index=0, words=material.vocabulary;
-    const choose=(review)=>{words=review ? material.vocabulary.filter(w=>isDueWord(state.words[w.word.toLowerCase()])) : material.vocabulary;index=0;paint()};
+    const choose=(review)=>{if(review){try{const latest=JSON.parse(storage.getItem(vocabularyKey)||'{}');state.words={...state.words,...latest}}catch{};words=dueVocabulary(catalog,state.words)}else words=material.vocabulary;index=0;paint()};
     all.onclick=()=>choose(false); due.onclick=()=>choose(true);
     function paint(){
       area.replaceChildren();
@@ -45,7 +54,7 @@ export function renderTraining(root, material, storage = localStorage, scope = '
       let selected=null; const prior=state.words[id];
       for(const [label,rating] of [['知道','known'],['模糊','uncertain'],['不知道','forgotten'],['我已熟练掌握','mastered']]){
         const button=document.createElement('button');button.textContent=label;button.className=rating==='mastered'?'secondary':'';
-        button.onclick=()=>{selected=rating;state.words[id]=scheduleWord(prior,rating);persist();answer.hidden=false;status.textContent=`已标记「${label}」。如记错了，可以重新选择。`;next.hidden=false;spelling.hidden=false;};actions.append(button);
+        button.onclick=()=>{selected=rating;state.words[id]=scheduleWord(prior,rating);saveWord(id,state.words[id]);answer.hidden=false;status.textContent=`已标记「${label}」。如记错了，可以重新选择。`;next.hidden=false;spelling.hidden=false;};actions.append(button);
       }
       const spelling=document.createElement('div');spelling.hidden=true;const startSpell=document.createElement('button');startSpell.textContent='练习拼写';const fields=document.createElement('div');fields.hidden=true;const spellPrompt=document.createElement('p');spellPrompt.textContent='根据释义拼写：'+word.meaning;const input=document.createElement('input');input.autocomplete='off';input.setAttribute('aria-label','输入单词拼写');const check=document.createElement('button'),showAnswer=document.createElement('button'),spellStatus=document.createElement('p');startSpell.onclick=()=>{title.hidden=true;answer.hidden=true;fields.hidden=false;startSpell.hidden=true;input.focus()};check.textContent='检查拼写';check.onclick=()=>{if(!input.value.trim()){spellStatus.textContent='请输入拼写。';return}const correct=matchesSpelling(input.value,word.word);spellStatus.textContent=correct?'拼写正确。':'再试一次。';if(correct){title.hidden=false;answer.hidden=false}};showAnswer.textContent='显示答案';showAnswer.onclick=()=>{title.hidden=false;answer.hidden=false};fields.append(spellPrompt,input,check,showAnswer,spellStatus);spelling.append(startSpell,fields);
       const next=document.createElement('button');next.textContent='下一个';next.hidden=true;next.onclick=()=>{if(selected){index++;paint()}};
