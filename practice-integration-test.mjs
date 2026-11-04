@@ -65,3 +65,17 @@ const errorRadios=all(errorsRoot,e=>e.tagName==='input'&&e.type==='radio');error
 const errorDraft=all(errorsRoot,e=>e.tagName==='textarea')[0];errorDraft.value='bad';errorDraft.dispatch('input');await byText(errorsRoot,'button','请求 AI 反馈').dispatch('click');
 const errorDays=JSON.parse(errorsStore.getItem('english-prep-training-v1:cet6:mistakes'));const errors=Object.values(errorDays).flat();assert.deepEqual(errors.map(x=>x.type).sort(),['listening','写作练习','词汇'].sort());assert.ok(errors.some(x=>x.answer==='bad'&&x.expected==='good'));
 console.log('PASS: mistakes captured from vocabulary, listening, and writing feedback.');
+
+// An unknown word must reappear within the session until recalled.
+const retryMap=new Map(), retryStore={getItem:k=>retryMap.get(k)??null,setItem:(k,v)=>retryMap.set(k,String(v))};
+const retryRoot=new Element('main');renderTraining(retryRoot,material,retryStore,'cet6:retry',feedback);
+byText(retryRoot,'button','不知道').dispatch('click');byText(retryRoot,'button','下一个').dispatch('click');assert.match(retryRoot.textContent,/assess/);
+byText(retryRoot,'button','知道').dispatch('click');byText(retryRoot,'button','下一个').dispatch('click');assert.match(retryRoot.textContent,/本轮词汇已完成/);
+// A wrong spelling must not leave a word classified as successfully recalled.
+const spellingStoreMap=new Map(), spellingStore={getItem:k=>spellingStoreMap.get(k)??null,setItem:(k,v)=>spellingStoreMap.set(k,String(v))};
+const spellingRoot=new Element('main');renderTraining(spellingRoot,material,spellingStore,'cet6:spell',feedback);
+byText(spellingRoot,'button','知道').dispatch('click');byText(spellingRoot,'button','练习拼写').dispatch('click');
+const spellInput=all(spellingRoot,e=>e.attributes['aria-label']==='输入单词拼写')[0];spellInput.value='asess';byText(spellingRoot,'button','检查拼写').dispatch('click');
+assert.equal(JSON.parse(spellingStore.getItem('english-prep-training-v1:cet6:vocabulary')).assess.lastRating,'forgotten');
+byText(spellingRoot,'button','下一个').dispatch('click');assert.match(spellingRoot.textContent,/assess/);
+console.log('PASS: session retry and spelling mistakes return to practice.');

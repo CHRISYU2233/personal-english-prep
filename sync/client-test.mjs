@@ -17,3 +17,16 @@ console.log('PASS: edits during sync and stale conflict resolution are preserved
 const d=storage();d.setItem('english-prep-sync-v1:token','x'.repeat(43));const cd=createSync({storage:d,request});await cd.sync();let da=JSON.parse(a.getItem(k));da.drafts.writing='essay';a.setItem(k,JSON.stringify(da));let dd=JSON.parse(d.getItem(k));dd.words.two=4;d.setItem(k,JSON.stringify(dd));await ca.sync();await cd.sync();const combined=JSON.parse(d.getItem(k));assert.equal(combined.drafts.writing,'essay');assert.equal(combined.words.two,4);
 console.log('PASS: disjoint cross-device edits merge');
 
+// Replacing a key during a pending request must never apply the old workspace.
+const switched=storage(),oldToken='o'.repeat(43),newToken='n'.repeat(43);
+switched.setItem('english-prep-sync-v1:token',oldToken);let releaseOld,completeNew;
+const newFinished=new Promise(resolve=>completeNew=resolve);
+const switchRequest=async(method,token,body)=>{
+ if(token===oldToken){await new Promise(resolve=>releaseOld=resolve);return {revision:'old',state:{[k]:{drafts:{writing:'old workspace'},words:{}}}}}
+ assert.equal(token,newToken);
+ if(method==='GET'){completeNew();return {revision:'new',state:{[k]:{drafts:{writing:'new workspace'},words:{}}}};}
+ return {revision:'new',state:body.state};
+};
+const switchClient=createSync({storage:switched,request:switchRequest});const oldRun=switchClient.sync();await Promise.resolve();await switchClient.connect(newToken);releaseOld();await oldRun;await newFinished;await new Promise(resolve=>setTimeout(resolve,0));
+assert.equal(JSON.parse(switched.getItem(k)).drafts.writing,'new workspace');assert.equal(switched.getItem('english-prep-sync-v1:token'),newToken);
+console.log('PASS: switching workspace during a pending sync does not apply stale data.');
