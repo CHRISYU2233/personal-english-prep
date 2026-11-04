@@ -6,7 +6,7 @@ export function previousSentenceTime(lines, currentTime) {
   for (let i=0;i<times.length;i++) if (times[i] <= currentTime + 0.05) current=i;
   return times[Math.max(0,current-1)];
 }
-export function renderQuestions(parent, data, state, persist, audio = null) {
+export function renderQuestions(parent, data, state, persist, audio = null, onMistake = null) {
   if (!data) return;
   state.answers ||= {};
   const scope = audio ? 'listening' : 'reading';
@@ -43,6 +43,6 @@ export function renderQuestions(parent, data, state, persist, audio = null) {
     };card.append(play)}
     const group=document.createElement('fieldset'),legend=document.createElement('legend');legend.textContent='选择答案';group.append(legend);const key=scope+':'+index;
     q.options.forEach((option,i)=>{const label=document.createElement('label'),radio=document.createElement('input');radio.type='radio';radio.name=key;radio.value=i;radio.checked=state.answers[key]===i;radio.onchange=()=>{state.answers[key]=i;persist()};label.append(radio,document.createTextNode(' '+option));group.append(label)});card.append(group);
-    const check=document.createElement('button');check.textContent='查看答案与讲解';message.setAttribute('role','status');check.onclick=()=>{const selected=state.answers[key];if(selected===undefined){message.textContent='请先选择答案。';return}if(q.answer<0||q.answer>=q.options.length){message.textContent='这道题没有有效的参考答案。';return}message.textContent=(selected===q.answer?'回答正确。':'再看看这道题。')+' 正确答案：'+q.options[q.answer]+(q.explanation?'\n'+q.explanation:'');message.style.whiteSpace='pre-wrap'};card.append(check,message);parent.append(card);
+    const check=document.createElement('button');check.textContent='查看答案与讲解';message.setAttribute('role','status');check.onclick=()=>{const selected=state.answers[key];if(selected===undefined){message.textContent='请先选择答案。';return}if(q.answer<0||q.answer>=q.options.length){message.textContent='这道题没有有效的参考答案。';return}if(selected!==q.answer&&onMistake)onMistake({type:scope,source:String(index),question:q.question,answer:q.options[selected],expected:q.options[q.answer],explanation:q.explanation});message.textContent=(selected===q.answer?'回答正确。':'再看看这道题。')+' 正确答案：'+q.options[q.answer]+(q.explanation?'\n'+q.explanation:'');message.style.whiteSpace='pre-wrap'};card.append(check,message);parent.append(card);
   });
 }

@@ -17,6 +17,8 @@
 | 听力练习 | 选择本机音频；导入有时间标记的题目，播放对应片段，查看答案和讲解；支持 0.5 倍速、英文或中英逐句字幕 |
 | 阅读与表达 | 阅读导入的材料并完成选择题或文字回答；写作、翻译草稿自动保存在浏览器 |
 | 获得 AI 反馈 | 可用自己的 OpenRouter 密钥请求反馈；能匹配到原文时，会在作答副本上标出问题片段 |
+| 针对性强化 | 根据当天已记录的错题生成原创练习，需要自己的 AI 密钥 |
+| 离线查词 | 输入单词或双击英文查询，支持连字符和部分词形还原 |
 | 保存学习数据 | 导出本机备份；可选部署单工作区同步服务，在设备输入同一密钥同步 |
 
 复习功能以词汇为主。AI 内容和反馈可能出错，请自行核对；项目不提供官方评分，也不保证考试成绩。
@@ -109,6 +111,7 @@ node exam-profiles-test.mjs
 node training-test.mjs
 node ai-client-test.mjs
 node dictionary-test.mjs
+node targeted-training-test.mjs
 node daily-plan-test.mjs
 node exercise-test.mjs
 node practice-integration-test.mjs

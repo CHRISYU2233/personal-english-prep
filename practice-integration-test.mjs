@@ -21,7 +21,7 @@ const all=(root,predicate)=>[...(predicate(root)?[root]:[]),...root.children.fla
 const byText=(root,tag,text)=>{const result=all(root,el=>el.tagName===tag&&el.textContent===text);assert.equal(result.length,1,`expected one ${tag}: ${text}`);return result[0]};
 const exerciseCode=fs.readFileSync(new URL('./exercise.js',import.meta.url),'utf8');
 const profileCode=fs.readFileSync(new URL('./exam-profiles.js',import.meta.url),'utf8');
-const trainingCode=fs.readFileSync(new URL('./training.js',import.meta.url),'utf8').replace("'./exercise.js'",`'data:text/javascript;base64,${Buffer.from(exerciseCode).toString('base64')}'`);
+const trainingCode=fs.readFileSync(new URL('./training.js',import.meta.url),'utf8').replace("'./exercise.js'",`'data:text/javascript;base64,${Buffer.from(exerciseCode).toString('base64')}'`).replace("'./targeted-training.js'",`'data:text/javascript;base64,${fs.readFileSync('targeted-training.js').toString('base64')}'`);
 const {parseStudyContent}=await import('data:text/javascript;base64,'+Buffer.from(profileCode).toString('base64'));
 const {renderTraining}=await import('data:text/javascript;base64,'+Buffer.from(trainingCode).toString('base64'));
 const material=parseStudyContent(JSON.stringify({title:'Sample',vocabulary:[{word:'assess',meaning:'评估',example:'Assess results.',translation:'评估结果。'}],listening:{transcript:'A student studies daily.',questions:[{question:'What?',options:['Study','Travel'],answer:0,explanation:'The student studies.',start:0,end:4}]},writing:'Describe a habit.'}));
@@ -56,3 +56,12 @@ byText(freshRoot,'button','我已熟练掌握').dispatch('click');
 const again=new Element('main');renderTraining(again,replacement,queueStore,'cet6:new',feedback);byText(again,'button','到期复习').dispatch('click');assert.match(again.textContent,/目前没有到期词汇/);
 const otherExam=new Element('main');renderTraining(otherExam,replacement,queueStore,'ielts:new',feedback);byText(otherExam,'button','到期复习').dispatch('click');assert.match(otherExam.textContent,/目前没有到期词汇/);
 console.log('PASS: cross-material due queue and exam isolation.');
+
+// Today's error collector receives wrong choices, uncertain words, and validated writing quotes.
+const errorsMap=new Map(), errorsStore={getItem:k=>errorsMap.get(k)??null,setItem:(k,v)=>errorsMap.set(k,String(v))};
+const errorsRoot=new Element('main');renderTraining(errorsRoot,material,errorsStore,'cet6:errors',feedback);
+byText(errorsRoot,'button','模糊').dispatch('click');
+const errorRadios=all(errorsRoot,e=>e.tagName==='input'&&e.type==='radio');errorRadios[1].dispatch('change');byText(errorsRoot,'button','查看答案与讲解').dispatch('click');
+const errorDraft=all(errorsRoot,e=>e.tagName==='textarea')[0];errorDraft.value='bad';errorDraft.dispatch('input');await byText(errorsRoot,'button','请求 AI 反馈').dispatch('click');
+const errorDays=JSON.parse(errorsStore.getItem('english-prep-training-v1:cet6:mistakes'));const errors=Object.values(errorDays).flat();assert.deepEqual(errors.map(x=>x.type).sort(),['listening','写作练习','词汇'].sort());assert.ok(errors.some(x=>x.answer==='bad'&&x.expected==='good'));
+console.log('PASS: mistakes captured from vocabulary, listening, and writing feedback.');
