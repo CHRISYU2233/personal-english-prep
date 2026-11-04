@@ -6,7 +6,7 @@ assert.equal(manifest.start_url,'./exam-setup.html');
 for(const icon of [...manifest.icons,{src:'./icons/icon-180.png'}]) {const b=fs.readFileSync(icon.src);assert.equal(b.readUInt32BE(0),0x89504e47);const size=Number(icon.src.match(/icon-(\d+)/)[1]);assert.equal(b.readUInt32BE(16),size);assert.equal(b.readUInt32BE(20),size)}
 const handlers={}, data=new Map(), deleted=[];
 const cache={async addAll(urls){for(const url of urls)data.set(url,new Response('offline'))},async put(url,response){data.set(typeof url==='string'?url:url.url,response)},async match(url){return data.get(url)?.clone()}};
-const caches={async open(){return cache},async keys(){return ['unrelated','english-prep-shell-old','english-prep-shell-v1']},async delete(key){deleted.push(key)}};
+const caches={async open(){return cache},async keys(){return ['unrelated','english-prep-shell-old','english-prep-shell-v2']},async delete(key){deleted.push(key)}};
 let fail=false;
 const self={registration:{scope:'https://example.test/sub/'},location:{origin:'https://example.test'},clients:{async claim(){}},async skipWaiting(){},addEventListener(type,fn){handlers[type]=fn}};
 const ctx={self,caches,URL,Response,Request,fetch:async()=>{if(fail)throw Error('offline');return new Response('online')}};

@@ -1,6 +1,6 @@
 // Cache only the public application shell, never user data, API traffic or credentials.
-const CACHE = 'english-prep-shell-v1';
-const FILES = ['index.html','exam-setup.html','manifest.webmanifest','pwa-register.js','exam-profiles.js','training.js','pronunciation.js','exercise.js','ai-client.js','daily-plan.js','targeted-training.js','dictionary/lookup.js','dictionary/data.js','dictionary/ui.js','sync/client.js','sync/merge.js','icons/icon-180.png','icons/icon-192.png','icons/icon-512.png'];
+const CACHE = 'english-prep-shell-v2';
+const FILES = ['index.html','exam-setup.html','manifest.webmanifest','pwa-register.js','exam-profiles.js','material-library.js','training.js','pronunciation.js','exercise.js','ai-client.js','daily-plan.js','targeted-training.js','dictionary/lookup.js','dictionary/data.js','dictionary/ui.js','sync/client.js','sync/merge.js','icons/icon-180.png','icons/icon-192.png','icons/icon-512.png'];
 const canonical = file => new URL(file,self.registration.scope).href;
 const allowed = new Set(FILES.map(canonical));
 self.addEventListener('install', event => event.waitUntil((async () => {

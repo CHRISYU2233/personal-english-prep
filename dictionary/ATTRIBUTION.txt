@@ -1,0 +1,54 @@
+Converted English–Chinese dictionary. Original: KOReader Dicts, Daniel Gregorini and contributors; release en-zh.zip, fetched 2026-11-05, SHA-256 910d8fc3bf054f7a36f5db134f0624619711e5b414ebf7de45a3c0e04e98232c.
+Source: https://danielgregorini.github.io/koreader-dicts/en/en-zh/
+Upstream source code: https://github.com/DanielGregorini/koreader-dicts
+Changes: extracted English single-word and hyphenated entries with Chinese meanings, normalized case and spacing, removed plus signs, filtered senses with long Latin fragments, and selected first three distinct Chinese meanings; extracted inflections and pronunciations. Examples and English explanations omitted.
+Source data remains CC BY-SA 4.0: https://creativecommons.org/licenses/by-sa/4.0/
+Wiktionary contributor attribution and article histories: https://en.wiktionary.org/; lookup source articles using the headword.
+
+This dictionary is distributed under Creative Commons Attribution-ShareAlike 4.0 International (CC-BY-SA-4.0).
+https://creativecommons.org/licenses/by-sa/4.0/
+
+It is built from the following sources:
+
+  * omw-cmn: Chinese Open Wordnet, via Open Multilingual Wordnet 1.4
+  * pwn30: Princeton University WordNet 3.0
+  * wikt-en-cmn: English Wiktionary via kaikki.org (wiktextract)
+
+-- WordNet 3.0 License (Princeton University) --
+WordNet Release 3.0 Copyright 2006 by Princeton University. All rights reserved. This copyright notice must be retained on all copies, including modified copies. The name of Princeton University or Princeton may not be used in advertising or publicity pertaining to distribution of the software and/or database without specific, written prior permission.
+
+Creative Commons Attribution-ShareAlike 4.0 International
+https://creativecommons.org/licenses/by-sa/4.0/
+
+This dictionary is a compilation of the sources listed in ATTRIBUTION.
+Each source's own terms are reproduced there and continue to apply to the
+material it contributed.
+
+  * Creative Commons Attribution-ShareAlike 4.0 International (CC-BY-SA-4.0) -- https://creativecommons.org/licenses/by-sa/4.0/
+  * WordNet 3.0 License (Princeton University) (WordNet-3.0) -- https://wordnet.princeton.edu/license-and-commercial-use
+
+
+WordNet 3.0 license:
+
+WordNet Release 3.0 This software and database is being provided to you, the
+LICENSEE, by Princeton University under the following license. By obtaining,
+using and/or copying this software and database, you agree that you have read,
+understood, and will comply with these terms and conditions.: Permission to
+use, copy, modify and distribute this software and database and its
+documentation for any purpose and without fee or royalty is hereby granted,
+provided that you agree to comply with the following copyright notice and
+statements, including the disclaimer, and that the same appear on ALL copies of
+the software, database and documentation, including modifications that you make
+for internal use or for distribution. WordNet 3.0 Copyright 2006 by Princeton
+University. All rights reserved. THIS SOFTWARE AND DATABASE IS PROVIDED "AS IS"
+AND PRINCETON UNIVERSITY MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR
+IMPLIED. BY WAY OF EXAMPLE, BUT NOT LIMITATION, PRINCETON UNIVERSITY MAKES NO
+REPRESENTATIONS OR WARRANTIES OF MERCHANT- ABILITY OR FITNESS FOR ANY
+PARTICULAR PURPOSE OR THAT THE USE OF THE LICENSED SOFTWARE, DATABASE OR
+DOCUMENTATION WILL NOT INFRINGE ANY THIRD PARTY PATENTS, COPYRIGHTS, TRADEMARKS
+OR OTHER RIGHTS. The name of Princeton University or Princeton may not be used
+in advertising or publicity pertaining to distribution of the software and/or
+database. Title to copyright in this software, database and any associated
+documentation shall at all times remain with Princeton University and LICENSEE
+agrees to preserve same.
+

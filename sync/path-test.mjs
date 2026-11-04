@@ -1,0 +1,2 @@
+import assert from 'node:assert/strict';import {resolve,join} from 'node:path';import {resolveSyncFile} from './path.js';
+const root=resolve('app-test-root');assert.throws(()=>resolveSyncFile(undefined,root));assert.throws(()=>resolveSyncFile('relative.json',root));assert.throws(()=>resolveSyncFile(join(root,'private-data','sync.json'),root));assert.equal(resolveSyncFile(resolve('external-test','sync.json'),root),resolve('external-test','sync.json'));console.log('PASS: sync file must be explicitly outside the application directory.');
