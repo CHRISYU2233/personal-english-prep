@@ -20,3 +20,5 @@ const controls=root.children[0],mode=controls.children[1];mode.value='both';mode
 audio.currentTime=6;controls.children[0].click();assert.equal(audio.currentTime,0);
 const radio=cards[0].children[2].children[1].children[0];radio.onchange();assert.equal(saves,1);cards[0].children[3].click();assert.match(cards[0].children.at(-1).textContent,/回答正确/);
 console.log('PASS: clip switching, timestamps, previous sentence, subtitles and answer feedback.');
+
+const splitRoot=new El('main'),splitAudio=new El('audio');renderQuestions(splitRoot,{questions:[{...q(0,3),segments:[[1,3],[8,10]]}]},{},()=>{},splitAudio);const splitCard=splitRoot.children.find(x=>x.tag==='article');splitCard.children[1].click();assert.equal(splitAudio.currentTime,1);splitAudio.currentTime=3;splitAudio.emit('timeupdate');assert.equal(splitAudio.currentTime,8);assert.equal(splitAudio.paused,false);splitAudio.currentTime=10;splitAudio.emit('timeupdate');assert.equal(splitAudio.paused,true);

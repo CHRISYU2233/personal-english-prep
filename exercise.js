@@ -35,10 +35,11 @@ export function renderQuestions(parent, data, state, persist, audio = null, onMi
     const card=document.createElement('article'), heading=document.createElement('h4'), message=document.createElement('p');heading.textContent=`${index+1}. ${q.question}`;card.append(heading);
     if(audio){const play=document.createElement('button');play.className='secondary';play.textContent='播放本题';play.onclick=()=>{
       if(!audio.src){message.textContent='请先选择音频文件。';return}
-      if(!Number.isFinite(q.start)||!Number.isFinite(q.end)||q.end<=q.start){message.textContent='这道题尚未设置有效的起止时间，请按录音填写后重新导入。';return}
-      if(Number.isFinite(audio.duration)&&q.end>audio.duration+0.1){message.textContent='本题结束时间超过录音长度，请检查时间。';return}
-      clearClip();audio.currentTime=q.start;message.textContent='';
-      activeStop=()=>{if(audio.currentTime>=q.end){audio.pause();clearClip()}};
+      const segments=q.segments?.length?q.segments:[[q.start,q.end]];
+      if(segments.some(([start,end])=>!Number.isFinite(start)||!Number.isFinite(end)||end<=start)){message.textContent='这道题尚未设置有效的起止时间，请按录音填写后重新导入。';return}
+      if(Number.isFinite(audio.duration)&&segments.some(([,end])=>end>audio.duration+0.1)){message.textContent='本题结束时间超过录音长度，请检查时间。';return}
+      clearClip();let segment=0;audio.currentTime=segments[0][0];message.textContent='';
+      activeStop=()=>{if(audio.currentTime>=segments[segment][1]){segment++;if(segment<segments.length)audio.currentTime=segments[segment][0];else{audio.pause();clearClip()}}};
       audio.addEventListener('timeupdate',activeStop);audio.play().catch(()=>{clearClip();message.textContent='音频播放失败，请重新选择文件。'});
     };card.append(play)}
     const group=document.createElement('fieldset'),legend=document.createElement('legend');legend.textContent='选择答案';group.append(legend);const key=scope+':'+index;

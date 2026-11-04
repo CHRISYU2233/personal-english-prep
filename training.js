@@ -1,3 +1,4 @@
+import {createPronunciation} from './pronunciation.js';
 import {renderQuestions} from './exercise.js';
 import {recordMistake,removeMistake} from './targeted-training.js';
 // Local practice state; no user content or credentials leave the browser.
@@ -63,7 +64,7 @@ export function renderTraining(root, material, storage = localStorage, scope = '
       if(index>=words.length){area.textContent=words.length?'本轮词汇已完成。':reviewing?'目前没有到期词汇。':'今天没有待学习的新词。';return}
       const word=words[index], id=word.word.toLowerCase(), progress=document.createElement('small'), title=document.createElement('h4');
       progress.textContent=`${index+1} / ${words.length}`;title.textContent=word.word;area.append(progress,title);
-      if('speechSynthesis' in window){const sound=document.createElement('button');sound.className='secondary';sound.textContent='播放发音';sound.onclick=()=>{speechSynthesis.cancel();const voice=new SpeechSynthesisUtterance(word.word);voice.lang='en-US';speechSynthesis.speak(voice)};area.append(sound)}
+      const pronunciationStatus=document.createElement('small');pronunciationStatus.setAttribute('role','status');const speaker=createPronunciation({onStatus:message=>pronunciationStatus.textContent=message});for(const [accent,label] of [['uk','英式 ▶'],['us','美式 ▶']]){const sound=document.createElement('button');sound.className='secondary';sound.textContent=label;sound.setAttribute('aria-label',label+'发音');sound.onclick=()=>speaker.play(word.word,accent);area.append(sound)}area.append(pronunciationStatus);
       const prompt=document.createElement('p');prompt.textContent='先回忆意思，再选择你的记忆程度。';area.append(prompt);
       const answer=document.createElement('div');answer.hidden=true;
       for(const text of [word.meaning,word.example,word.translation].filter(Boolean)){const line=document.createElement('p');line.textContent=text;answer.append(line)}

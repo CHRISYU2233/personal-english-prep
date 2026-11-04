@@ -5,3 +5,7 @@ assert.equal(await askAI({key:'demo',model:'example/model',messages:[],fetcher})
 await assert.rejects(askAI({key:'',model:'m',messages:[],fetcher}));
 await assert.rejects(askAI({key:'demo',model:'m',messages:[],fetcher:async()=>({ok:false,status:401})}),/401/);
 console.log('PASS: optional AI provider request and failure handling.');
+
+await assert.rejects(askAI({key:'demo',model:'m',messages:[],fetcher:async()=>({ok:false,status:403,json:async()=>({error:{message:'Country or region not supported'}})})}),/地区/);
+
+await assert.rejects(askAI({key:'demo',model:'m',messages:[],endpoint:'http://insecure.example/v1',fetcher}),/HTTPS/);let sent='';await askAI({key:'demo',model:'m',messages:[],endpoint:'https://provider.example/v1/chat/completions',fetcher:async(url)=>{sent=url;return {ok:true,json:async()=>({choices:[{message:{content:'ok'}}]})}}});assert.equal(sent,'https://provider.example/v1/chat/completions');
