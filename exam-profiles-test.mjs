@@ -10,3 +10,6 @@ assert.equal(material.vocabulary[0].word,'assess');
 assert.equal(material.reading.passage,'Hello');
 console.log('PASS: exam selection, prompt bounds, JSON validation and AI content import.');
 
+
+const structured=parseStudyContent(JSON.stringify({listening:{lines:[{english:'Hello.',chinese:'你好。',start:0}],questions:[{question:'Choose',options:['A','B'],answer:1,start:2,end:4,explanation:'Because.'}]}}));
+assert.equal(structured.listening.questions[0].answer,1);assert.equal(structured.listening.questions[0].end,4);assert.equal(structured.listening.lines[0].chinese,'你好。');

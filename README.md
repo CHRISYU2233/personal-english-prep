@@ -6,7 +6,7 @@
 
 - 制作适用于各考试目标的 AI 生成提示，并粘贴导入 JSON。
 - 可选使用个人 OpenRouter 密钥生成材料、请求听读写译反馈（尽可能标出作答中的问题原句）。
-- 词汇自评与简单到期复习；听力使用用户选择的本地音频文件。
+- 词汇自评与简单到期复习；听力使用用户选择的本地音频文件，可导入逐题选项、时间片段、逐句双语字幕和讲解。
 - 阅读、写作、翻译草稿自动保存；支持本机备份导出与恢复。
 
 AI 材料不代表官方题目、评分或考试建议，应自行核对。此项目不是任何考试机构的官方产品。不提供原版真题、听力录音、官方评分或自动多设备云同步。AI 反馈会尝试在作答副本中标记可核对的原句，解释及修改建议列在下方。多邻国英语测试与 Duolingo 的商标属于其各自权利人。
@@ -28,14 +28,14 @@ python -m http.server 5174 --bind 127.0.0.1
   "title": "今日学习",
   "plan": ["复习词汇", "阅读练习"],
   "vocabulary": [{"word":"assess","meaning":"评估","example":"We assess results.","translation":"我们评估结果。"}],
-  "listening": {"transcript":"A short original transcript.","question":"What is the topic?"},
+  "listening": {"transcript":"A short original transcript.","question":"What is the topic?", "lines":[{"english":"A short sentence.","chinese":"一个简短的句子。","start":0}], "questions":[{"question":"What is the topic?","options":["Learning","Travel"],"answer":0,"explanation":"The passage is about learning.","start":0,"end":4}]},
   "reading": {"passage":"A short original passage.","question":"What is the main idea?"},
   "writing":"Describe a learning habit.",
   "translation":"坚持学习需要耐心。"
 }
 ```
 
-题材必须由你自行提供、原创或具备使用许可；不要未经授权分享考试真题、录音或其他受保护内容。监听材料可选本机音频，本地文件不上传；刷新后需要重新选择。
+题材必须由你自行提供、原创或具备使用许可；不要未经授权分享考试真题、录音或其他受保护内容。监听材料可选本机音频，本地文件不上传；刷新后需要重新选择。逐题音频使用同一个文件中的时间段：`start` 与 `end` 为秒；请按实际录音填写。`answer` 是从 0 开始的选项序号。字幕 `lines` 一项显示一行，`start` 用于上一句跳转。
 
 ## AI 与隐私
 
