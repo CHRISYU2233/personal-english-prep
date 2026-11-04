@@ -1,0 +1,6 @@
+.env*
+!.env.example
+*.mp3
+*.wav
+*.json
+node_modules/
