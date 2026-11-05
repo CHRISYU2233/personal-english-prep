@@ -4,7 +4,7 @@ import {timingSafeEqual, randomBytes} from 'node:crypto';
 import {readFile, writeFile, rename, mkdir, unlink} from 'node:fs/promises';
 import {dirname} from 'node:path';
 
-const LIMIT = 2 * 1024 * 1024;
+const LIMIT = 25 * 1024 * 1024;
 function safe(value, depth=0) {
   if (depth > 40) return false;
   if (!value || typeof value !== 'object') return true;

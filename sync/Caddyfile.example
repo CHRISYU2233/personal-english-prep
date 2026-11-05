@@ -1,0 +1,17 @@
+# Replace the domain and static root with your own HTTPS deployment settings.
+example.invalid {
+    encode zstd gzip
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy no-referrer
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https:; media-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+    }
+    handle /api/sync {
+        reverse_proxy 127.0.0.1:8787
+    }
+    handle {
+        root * /srv/english-prep/public
+        file_server
+    }
+}

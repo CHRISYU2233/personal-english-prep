@@ -4,6 +4,14 @@
 *.wav
 *.json
 node_modules/
+__pycache__/
+audit-screenshots/
+docs/screenshots/debug-*.png
+docs/screenshots/*-v[0-9].png
+docs/screenshots/phone-vocabulary.png
+docs/screenshots/phone-listening.png
+docs/screenshots/ipad-dashboard.png
+docs/screenshots/*-final*.png
 
 # Local sync state and interrupted writes
 private-data/

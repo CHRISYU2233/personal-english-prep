@@ -13,7 +13,7 @@ export function renderDailyPlan(root, material, exam, minutes, storage=localStor
   root.replaceChildren();const plan=makeDailyPlan(material,minutes);if(!plan.length)return;
   const day=[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
   const key='english-prep-training-v1:'+exam+':daily';let data={};try{data=JSON.parse(storage.getItem(key)||'{}')}catch{}
-  if(!data||typeof data!=='object'||Array.isArray(data))data={};data[day] ||= {};
+  if(!data||typeof data!=='object'||Array.isArray(data))data={};data[day] ||= {};for(const old of Object.keys(data).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)).sort().slice(0,-90))delete data[old];
   const h=document.createElement('h3');h.textContent='今日安排';const info=document.createElement('p');info.textContent='按现有材料分配时间；做不完明天重新安排，不累计任务。完成后可手动标记。';root.append(h,info);
   for(const item of plan){const label=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.checked=!!data[day][item.id];box.onchange=()=>{data[day][item.id]=box.checked;storage.setItem(key,JSON.stringify(data))};label.append(box,document.createTextNode(` ${item.label} · ${item.minutes} 分钟`));root.append(label)}
 }

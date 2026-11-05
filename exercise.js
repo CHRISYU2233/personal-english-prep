@@ -13,6 +13,7 @@ export function renderQuestions(parent, data, state, persist, audio = null, onMi
   let activeStop = null;
   const clearClip = () => { if(activeStop && audio) audio.removeEventListener('timeupdate',activeStop); activeStop=null; };
   if (audio) {
+    audio.addEventListener('loadstart',clearClip);
     const lines = Array.isArray(data.lines) ? data.lines : [];
     if (lines.length) {
       const controls=document.createElement('div'), previous=document.createElement('button'), mode=document.createElement('select'), subtitle=document.createElement('div'), notice=document.createElement('p');
@@ -31,7 +32,9 @@ export function renderQuestions(parent, data, state, persist, audio = null, onMi
     }
     const speed=document.createElement('select');speed.setAttribute('aria-label','播放速度');for(const n of [0.5,0.75,1,1.25,1.5]){const option=document.createElement('option');option.value=n;option.textContent=n+'×';option.selected=n===1;speed.append(option)}speed.onchange=()=>audio.playbackRate=Number(speed.value);parent.append(speed);
   }
-  (data.questions || []).forEach((q,index)=>{
+  const questions=data.questions||[],pages=document.createElement('div'),pager=document.createElement('nav'),previousQuestion=document.createElement('button'),nextQuestion=document.createElement('button'),questionProgress=document.createElement('span');let page=0;pager.className='question-pager';pager.setAttribute('aria-label','题目切换');previousQuestion.className='secondary';nextQuestion.className='secondary';previousQuestion.textContent='上一题';nextQuestion.textContent='下一题';pager.append(previousQuestion,questionProgress,nextQuestion);if(questions.length){parent.append(pager,pages)}
+  const cards=[];const paintPage=()=>{cards.forEach((card,i)=>card.hidden=i!==page);questionProgress.textContent=`${page+1} / ${cards.length}`;previousQuestion.disabled=page===0;nextQuestion.disabled=page===cards.length-1};previousQuestion.onclick=()=>{if(page>0){page--;paintPage();pager.scrollIntoView?.({block:'nearest'})}};nextQuestion.onclick=()=>{if(page<cards.length-1){page++;paintPage();pager.scrollIntoView?.({block:'nearest'})}};
+  questions.forEach((q,index)=>{
     const card=document.createElement('article'), heading=document.createElement('h4'), message=document.createElement('p');heading.textContent=`${index+1}. ${q.question}`;card.append(heading);
     if(audio){const play=document.createElement('button');play.className='secondary';play.textContent='播放本题';play.onclick=()=>{
       if(!audio.src){message.textContent='请先选择音频文件。';return}
@@ -44,6 +47,7 @@ export function renderQuestions(parent, data, state, persist, audio = null, onMi
     };card.append(play)}
     const group=document.createElement('fieldset'),legend=document.createElement('legend');legend.textContent='选择答案';group.append(legend);const key=scope+':'+index;
     q.options.forEach((option,i)=>{const label=document.createElement('label'),radio=document.createElement('input');radio.type='radio';radio.name=key;radio.value=i;radio.checked=state.answers[key]===i;radio.onchange=()=>{state.answers[key]=i;persist()};label.append(radio,document.createTextNode(' '+option));group.append(label)});card.append(group);
-    const check=document.createElement('button');check.textContent='查看答案与讲解';message.setAttribute('role','status');check.onclick=()=>{const selected=state.answers[key];if(selected===undefined){message.textContent='请先选择答案。';return}if(q.answer<0||q.answer>=q.options.length){message.textContent='这道题没有有效的参考答案。';return}if(selected!==q.answer&&onMistake)onMistake({type:scope,source:String(index),question:q.question,answer:q.options[selected],expected:q.options[q.answer],explanation:q.explanation});message.textContent=(selected===q.answer?'回答正确。':'再看看这道题。')+' 正确答案：'+q.options[q.answer]+(q.explanation?'\n'+q.explanation:'');message.style.whiteSpace='pre-wrap'};card.append(check,message);parent.append(card);
+    const check=document.createElement('button');check.textContent='查看答案与讲解';message.setAttribute('role','status');check.onclick=()=>{const selected=state.answers[key];if(selected===undefined){message.textContent='请先选择答案。';return}if(q.answer<0||q.answer>=q.options.length){message.textContent='这道题没有有效的参考答案。';return}if(selected!==q.answer&&onMistake)onMistake({type:scope,source:String(index),question:q.question,answer:q.options[selected],expected:q.options[q.answer],explanation:q.explanation});message.textContent=(selected===q.answer?'回答正确。':'再看看这道题。')+' 正确答案：'+q.options[q.answer]+(q.explanation?'\n'+q.explanation:'');message.style.whiteSpace='pre-wrap'};card.append(check,message);cards.push(card);pages.append(card);
   });
+  if(cards.length)paintPage();else pager.remove?.();
 }

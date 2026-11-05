@@ -6,17 +6,18 @@ export function chooseVoice(voices, locale) {
 }
 let defaultManifest;
 let activeAudio;
+let activeRun=0;
 export function createPronunciation({synthesis=globalThis.speechSynthesis, Utterance=globalThis.SpeechSynthesisUtterance, AudioClass=globalThis.Audio, fetcher=globalThis.fetch, onStatus=()=>{}}={}) {
  let manifest={};
- const load=()=>fetcher?fetcher('./voices/manifest.json').then(r=>r.ok?r.json():{}).catch(()=>({})):Promise.resolve({});const ready=(fetcher===globalThis.fetch?(defaultManifest ||= load()):load()).then(x=>{if(x&&typeof x==='object')manifest=x});
+ const load=()=>{if(!fetcher)return Promise.resolve({});const signal=globalThis.AbortSignal?.timeout?.(1200);return fetcher('./voices/manifest.json',signal?{signal}:undefined).then(r=>r.ok?r.json():{}).catch(()=>({}))};const ready=(fetcher===globalThis.fetch?(defaultManifest ||= load()):load()).then(x=>{if(x&&typeof x==='object')manifest=x});
  function device(word,accent){
   if(!synthesis||!Utterance){onStatus('此设备暂不支持发音。');return}
   try {synthesis.cancel();const utterance=new Utterance(word), locale=accent==='uk'?'en-GB':'en-US';utterance.lang=locale;const voice=chooseVoice(synthesis.getVoices(),locale);if(voice)utterance.voice=voice;utterance.onerror=()=>onStatus('设备发音失败，请检查静音和音量。');utterance.onstart=()=>onStatus(voice&&voice.lang.toLowerCase()!==locale.toLowerCase()?'该口音不可用，正在使用设备英语语音。':'');synthesis.speak(utterance)}catch{onStatus('设备发音失败，请检查静音和音量。')}
  }
- function play(word,accent='us'){
+ async function play(word,accent='us'){
   const text=String(word||'').trim(),valid=/^[a-z]+(?:[-'][a-z]+)*$/i.test(text);if(!valid){onStatus('这个词暂不能播放。');return}
-  if(activeAudio){activeAudio.pause();activeAudio=null}const id=text.toLowerCase(),file=manifest?.[accent]?.[id];
-  if(typeof file==='string' && /^voices\/(?:us|uk)\/[a-z]+(?:[-'][a-z]+)*\.wav$/i.test(file) && AudioClass){try{activeAudio=new AudioClass('./'+file);const playback=activeAudio.play();if(playback?.catch)playback.catch(()=>device(text,accent));return}catch{}}
+  const run=++activeRun;if(activeAudio){activeAudio.pause();activeAudio=null}onStatus('正在准备发音…');await ready;if(run!==activeRun)return;const id=text.toLowerCase(),file=manifest?.[accent]?.[id];
+  if(typeof file==='string' && /^voices\/(?:us|uk)\/[a-z]+(?:[-'][a-z]+)*\.wav$/i.test(file) && AudioClass){try{const recording=activeAudio=new AudioClass('./'+file);let ready=false;const fallback=()=>{if(ready||run!==activeRun)return;ready=true;clearTimeout(timer);try{recording.pause()}catch{};if(activeAudio===recording)activeAudio=null;onStatus('本地发音不可用，已切换设备语音。');device(text,accent)};const started=()=>{if(run!==activeRun)return;ready=true;clearTimeout(timer);onStatus('')};recording.onerror=fallback;recording.onstalled=fallback;recording.onplaying=started;const timer=setTimeout(fallback,1800);timer?.unref?.();const playback=recording.play();if(playback?.then)playback.then(started,fallback);return}catch{}}
   device(text,accent)
  }
  return {ready,play};

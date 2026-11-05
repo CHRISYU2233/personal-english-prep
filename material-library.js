@@ -1,4 +1,7 @@
 const prefix='english-prep-training-v1:';
 const key=exam=>prefix+exam+':materials';
-export function listMaterials(storage,exam){try{const rows=JSON.parse(storage.getItem(key(exam))||'[]');return Array.isArray(rows)?rows.filter(x=>x&&typeof x.id==='string'&&x.material&&typeof x.material==='object'):[]}catch{return []}}
-export function saveMaterial(storage,exam,id,material){const rows=listMaterials(storage,exam);const i=rows.findIndex(x=>x.id===id),entry={id,material};if(i<0)rows.push(entry);else rows[i]=entry;storage.setItem(key(exam),JSON.stringify(rows));return rows}
+function readMaterials(storage,exam){const raw=storage.getItem(key(exam));if(raw===null)return [];let rows;try{rows=JSON.parse(raw)}catch{throw Error('资料库数据损坏，请先导出备份。')}if(!Array.isArray(rows)||rows.some(x=>!x||typeof x.id!=='string'||!x.material||typeof x.material!=='object'||Array.isArray(x.material)))throw Error('资料库数据损坏，请先导出备份。');return rows}
+export function listMaterials(storage,exam){try{return readMaterials(storage,exam)}catch{return []}}
+export function resolveMaterialId(storage,exam,id,material){const rows=readMaterials(storage,exam),text=JSON.stringify(material);for(let n=0;;n++){const candidate=id+(n?n.toString(36):''),match=rows.find(x=>x.id===candidate);if(!match||JSON.stringify(match.material)===text)return candidate}}
+export function saveMaterial(storage,exam,id,material,now=Date.now()){const rows=readMaterials(storage,exam),safeId=resolveMaterialId(storage,exam,id,material);const i=rows.findIndex(x=>x.id===safeId),entry={id:safeId,material,addedAt:i>=0&&Number.isFinite(rows[i].addedAt)?rows[i].addedAt:now};if(i<0)rows.push(entry);else rows[i]=entry;storage.setItem(key(exam),JSON.stringify(rows));return safeId}
+export function removeMaterial(storage,exam,id){const rows=readMaterials(storage,exam),next=rows.filter(row=>row.id!==id);if(next.length===rows.length)return false;storage.setItem(key(exam),JSON.stringify(next));return true}

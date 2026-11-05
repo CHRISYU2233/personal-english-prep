@@ -23,6 +23,12 @@ try {
  const first=JSON.parse(a.getItem(key));first.words.second={stage:2};a.setItem(key,JSON.stringify(first));
  const second=JSON.parse(b.getItem(key));second.drafts.translation='translated';b.setItem(key,JSON.stringify(second));
  await ca.sync();await cb.sync();await ca.sync();assert.deepEqual(capture(a),capture(b),'disjoint changes must merge');
+ const libraryKey='english-prep-training-v1:cet6:materials';
+ a.setItem(libraryKey,JSON.stringify([{id:'froma',material:{title:'From A'}}]));
+ b.setItem(libraryKey,JSON.stringify([{id:'fromb',material:{title:'From B'}}]));
+ await ca.sync();await cb.sync();await ca.sync();
+ assert.deepEqual(JSON.parse(a.getItem(libraryKey)).map(x=>x.id).sort(),['froma','fromb'],'concurrent material imports must both survive');
+ assert.deepEqual(capture(a),capture(b),'material libraries must converge');
  const left=JSON.parse(a.getItem(key));left.drafts.writing='left';a.setItem(key,JSON.stringify(left));
  const right=JSON.parse(b.getItem(key));right.drafts.writing='right';b.setItem(key,JSON.stringify(right));
  await ca.sync();await cb.sync();assert.ok(event.conflict,'concurrent edits must surface a conflict');assert.equal(JSON.parse(b.getItem(key)).drafts.writing,'right');

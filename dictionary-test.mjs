@@ -3,7 +3,7 @@ import fs from 'node:fs';
 const code=fs.readFileSync('dictionary/lookup.js').toString('base64');
 const {lookupWord,normalizeWord}=await import('data:text/javascript;base64,'+code);
 assert.equal(normalizeWord('  WELL–BEING '),'well-being');
-const load=async()=>({TAP_DICTIONARY:{'well-being':{word:'well-being',meaning:'健康'},'study':{word:'study',meaning:'学习'}},TAP_WORD_FORMS:{studies:'study'}});
+const load=async()=>({DICTIONARY:{'well-being':{word:'well-being',meaning:'健康'},'study':{word:'study',meaning:'学习'}},WORD_FORMS:{studies:'study'}});
 assert.equal((await lookupWord(' WELL–BEING ',load)).meaning,'健康');
 assert.equal((await lookupWord('studies',load)).baseWord,'study');
 assert.equal(await lookupWord('<script>',load),null);
