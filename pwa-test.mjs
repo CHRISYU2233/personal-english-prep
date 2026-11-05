@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 const manifest=JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
 assert.equal(manifest.start_url,'./exam-setup.html');
+for(const page of ['index.html','exam-setup.html']) assert.match(fs.readFileSync(page,'utf8'),/rel="icon"[^>]+icons\/icon-192\.png/);
 for(const icon of [...manifest.icons,{src:'./icons/icon-180.png'}]) {const b=fs.readFileSync(icon.src);assert.equal(b.readUInt32BE(0),0x89504e47);const size=Number(icon.src.match(/icon-(\d+)/)[1]);assert.equal(b.readUInt32BE(16),size);assert.equal(b.readUInt32BE(20),size)}
 const handlers={}, data=new Map(), deleted=[];
 const cache={async addAll(urls){for(const url of urls)data.set(url,new Response('offline'))},async put(url,response){data.set(typeof url==='string'?url:url.url,response)},async match(url){return data.get(url)?.clone()}};
